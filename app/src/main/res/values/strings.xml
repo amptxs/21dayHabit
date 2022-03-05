@@ -1,0 +1,23 @@
+<resources>
+    <string name="app_name">21 day habbit</string>
+
+    <!-- Статусы -->
+    <string name="statusActive">Активно</string>
+    <string name="statusInactive">Просрочено</string>
+    <string name="statusDelayed">Старт</string>
+    <string name="statusDone">Выполнено</string>
+
+    <!-- Действия -->
+    <string name="marked">Отмечено</string>
+    <string name="deleted">Удалено</string>
+    <string name="undo">Отмена</string>
+    <string name="addHabbit">Добавить привычку</string>
+    
+    <!-- Тексты -->
+    <string name="introductionFirst">Положительные привычки улучшают ваше физическое, психологическое и эмоциональное состояние</string>
+    <string name="introductionSecond">Начните прямо сейчас нажав кнопку “добавить привычку”</string>
+
+
+    <!-- Остальное -->
+    <string name="outOf">из</string>
+</resources>
