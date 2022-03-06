@@ -3,6 +3,14 @@
     <font
         android:fontStyle="normal"
         android:fontWeight="400"
+        android:font="@font/opensans_regular" />
+    <font
+        android:fontStyle="normal"
+        android:fontWeight="400"
+        android:font="@font/opensans_medium" />
+    <font
+        android:fontStyle="normal"
+        android:fontWeight="400"
         android:font="@font/opensans_bold" />
     <font
         android:fontStyle="normal"

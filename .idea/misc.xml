@@ -3,6 +3,9 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
+        <entry key="..\:/Users/Alexander/AndroidStudioProjects/21dayhabbit/app/src/main/res/drawable/checkbox.xml" value="0.2335" />
+        <entry key="..\:/Users/Alexander/AndroidStudioProjects/21dayhabbit/app/src/main/res/drawable/checkbox_selected.xml" value="0.2335" />
+        <entry key="..\:/Users/Alexander/AndroidStudioProjects/21dayhabbit/app/src/main/res/drawable/checkbox_selector.xml" value="0.2335" />
         <entry key="..\:/Users/Alexander/AndroidStudioProjects/21dayhabbit/app/src/main/res/drawable/ic_baseline_delete_24.xml" value="0.2165" />
         <entry key="..\:/Users/Alexander/AndroidStudioProjects/21dayhabbit/app/src/main/res/drawable/progressbar.xml" value="0.2165" />
         <entry key="..\:/Users/Alexander/AndroidStudioProjects/21dayhabbit/app/src/main/res/drawable/progressbar_active.xml" value="0.2165" />
@@ -11,8 +14,10 @@
         <entry key="..\:/Users/Alexander/AndroidStudioProjects/21dayhabbit/app/src/main/res/font/open_sans_bold.xml" value="0.284375" />
         <entry key="..\:/Users/Alexander/AndroidStudioProjects/21dayhabbit/app/src/main/res/font/open_sans_extrabold.xml" value="0.284375" />
         <entry key="..\:/Users/Alexander/AndroidStudioProjects/21dayhabbit/app/src/main/res/font/opensans_family.xml" value="0.284375" />
+        <entry key="..\:/Users/Alexander/AndroidStudioProjects/21dayhabbit/app/src/main/res/layout/activity_add_habit.xml" value="0.264" />
         <entry key="..\:/Users/Alexander/AndroidStudioProjects/21dayhabbit/app/src/main/res/layout/activity_main.xml" value="0.264" />
         <entry key="..\:/Users/Alexander/AndroidStudioProjects/21dayhabbit/app/src/main/res/layout/materialcardview_habbit.xml" value="0.264" />
+        <entry key="..\:/Users/Alexander/AndroidStudioProjects/21dayhabbit/app/src/main/res/layout/picker_item_layout.xml" value="0.21331521739130435" />
       </map>
     </option>
   </component>

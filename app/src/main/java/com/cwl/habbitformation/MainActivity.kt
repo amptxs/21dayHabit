@@ -1,5 +1,6 @@
 package com.cwl.habbitformation
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
@@ -7,6 +8,7 @@ import androidx.core.view.isGone
 import androidx.core.view.updateLayoutParams
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.cwl.habbitformation.activities.AddHabitActivity
 import com.cwl.habbitformation.adapters.RecyclerViewHabbitAdapter
 import com.cwl.habbitformation.adapters.RecyclerViewTouchHelper
 import com.cwl.habbitformation.models.Habbit
@@ -49,27 +51,36 @@ class MainActivity : AppCompatActivity() {
         val habit2 = Habbit("Здорово питаться", "тест", d, d, 21)
         habit2.Progress = 7
 
-        val habit3 = Habbit("Читать каждый день", "тест", Calendar.getInstance().time,
-            Calendar.getInstance().time, 21)
-        habit3.Progress = 21
+        val habit3 = Habbit("Начать бегать", "тест", Calendar.getInstance().time,
+            Calendar.getInstance().time, 100)
+        habit3.Progress = 100
 
-        addItemTop(habit1)
-        addItemTop(habit2)
+        val habit4 = Habbit("ЗАГОЛОВОК Щ В ДВЕ СТРОКИ", "тест", Calendar.getInstance().time,
+            Calendar.getInstance().time, 21)
+        habit4.Progress = 21
+
+        addItemTop(habit4)
         addItemTop(habit3)
+        addItemTop(habit2)
+        addItemTop(habit1)
 
         AddButton.setOnClickListener(){
-            addItemTop(habit1)
+            //addItemTop(habit1)
+
+            openAddHabitActivity()
         }
 
 
     }
 
+    //move to data controller TODO
     fun addItemTop(model: Habbit){
         //dbList.add(model) TODO
         recyclerAdapter.addItemTop(model)
         refreshIntroduction()
     }
 
+    //move to data controller TODO
     fun removeAndNotify(viewHolder: RecyclerViewHabbitAdapter.ViewHolder){
         //dbList.removeAt(model) TODO
 
@@ -89,10 +100,9 @@ class MainActivity : AppCompatActivity() {
         refreshIntroduction()
     }
 
-    fun refreshIntroduction(){
-
-        introductionFirst.isGone = !(recyclerAdapter.itemCount == 0)
-        introductionSecond.isGone = !(recyclerAdapter.itemCount == 0)
+    private fun refreshIntroduction(){
+        introductionFirst.isGone = recyclerAdapter.itemCount != 0
+        introductionSecond.isGone = recyclerAdapter.itemCount != 0
 
         if (recyclerAdapter.itemCount == 0)
             AddButton.updateLayoutParams<ConstraintLayout.LayoutParams> {
@@ -101,8 +111,11 @@ class MainActivity : AppCompatActivity() {
         else
             AddButton.updateLayoutParams<ConstraintLayout.LayoutParams> {
             topMargin = 0
-        }
+            }
+    }
 
-
+    private fun openAddHabitActivity(){
+        var intent = Intent(this, AddHabitActivity::class.java)
+        startActivity(intent)
     }
 }

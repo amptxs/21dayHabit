@@ -9,4 +9,7 @@
     <color name="active">#52E3A6</color>
     <color name="inactive">#EE6A6A</color>
     <color name="delayed">#FFB800</color>
+
+    <color name="hintColor">#B9B9B9</color>
+    <color name="mtrl_textinput_default_box_stroke_color">@color/element</color>
 </resources>
