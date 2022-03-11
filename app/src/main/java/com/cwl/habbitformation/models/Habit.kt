@@ -15,6 +15,7 @@ import java.sql.Time
 import java.time.Duration
 import java.util.*
 import java.util.concurrent.TimeUnit
+import kotlin.time.Duration.Companion.hours
 
 class Habit(label: String, description: String, created: Date, lastUpdate: Date?,
             duration: Int, notifyAt: Long?) : Serializable {
@@ -30,7 +31,7 @@ class Habit(label: String, description: String, created: Date, lastUpdate: Date?
 
     fun getStatus(context: Context): String{
         return when {
-            delayDateDifference() >= 1 -> (context.getString(R.string.delayed) + " " +
+            delayDateDifference() > 0 -> (context.getString(R.string.delayed) + " " +
                     DateFormat.format("dd.MM", Created))
             Progress == Duration -> context.getString(R.string.statusDone)
             dateDifference() <= 1 -> context.getString(R.string.statusActive)
@@ -46,7 +47,7 @@ class Habit(label: String, description: String, created: Date, lastUpdate: Date?
 
     fun getStatusColor(context: Context): Int {
         return when {
-            delayDateDifference() >= 1 -> ContextCompat.getColor(context, R.color.delayed)
+            delayDateDifference() > 0 -> ContextCompat.getColor(context, R.color.delayed)
             dateDifference() <= 1 || Progress == Duration -> ContextCompat.getColor(context, R.color.active)
             else -> ContextCompat.getColor(context, R.color.inactive)
         }
@@ -78,8 +79,8 @@ class Habit(label: String, description: String, created: Date, lastUpdate: Date?
         return (Calendar.getInstance().time.time - LastUpdate!!.time) / (1000 * 60 * 60 * 24)
     }
 
-    private fun delayDateDifference(): Long{
-        return (Created.time - Calendar.getInstance().time.time) / (1000 * 60 * 60 * 24)
+    private fun delayDateDifference(): Double{
+        return (Created.time - Calendar.getInstance().time.time).toDouble() / (1000 * 60 * 60 * 24)
     }
 
     fun millisToNormal(mill: Long)

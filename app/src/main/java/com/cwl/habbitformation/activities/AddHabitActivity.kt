@@ -183,6 +183,9 @@ class AddHabitActivity : AppCompatActivity() {
             date[Calendar.YEAR] = year
             date[Calendar.MONTH] = monthOfYear
             date[Calendar.DAY_OF_MONTH] = dayOfMonth
+            date[Calendar.HOUR_OF_DAY] = 0
+            date[Calendar.MINUTE] = 0
+            date[Calendar.SECOND] = 0
 
             buttonDateSelect.text = "${formattedString(date[Calendar.DAY_OF_MONTH])}" +
                     ".${formattedString(date[Calendar.MONTH])}"
