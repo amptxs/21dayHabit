@@ -1,28 +1,22 @@
 package com.cwl.habbitformation.adapters
 
 import android.content.Context
-import android.graphics.Color
-import android.graphics.ColorFilter
-import android.graphics.drawable.Drawable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.animation.AccelerateDecelerateInterpolator
 import androidx.core.content.ContextCompat
-import androidx.core.graphics.drawable.DrawableCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.cwl.habbitformation.R
-import com.cwl.habbitformation.models.Habbit
-import com.google.android.material.snackbar.Snackbar
-import kotlinx.android.synthetic.main.materialcardview_habbit.view.*
+import com.cwl.habbitformation.models.Habit
+import kotlinx.android.synthetic.main.materialcardview_habit.view.*
 
 
-class RecyclerViewHabbitAdapter: RecyclerView.Adapter<RecyclerViewHabbitAdapter.ViewHolder>() {
-    private var items: MutableList<Habbit> = mutableListOf()
+class RecyclerViewHabitAdapter: RecyclerView.Adapter<RecyclerViewHabitAdapter.ViewHolder>() {
+    private var items: MutableList<Habit> = mutableListOf()
     private lateinit var thisContext: Context
 
     inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-        fun bind(model: Habbit) {
+        fun bind(model: Habit) {
             itemView.apply{
                 thisContext = context
 
@@ -49,7 +43,7 @@ class RecyclerViewHabbitAdapter: RecyclerView.Adapter<RecyclerViewHabbitAdapter.
 
     override fun onCreateViewHolder(viewGroup: ViewGroup, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(viewGroup.context)
-            .inflate(R.layout.materialcardview_habbit, viewGroup, false)
+            .inflate(R.layout.materialcardview_habit, viewGroup, false)
         return ViewHolder(view)
     }
 
@@ -60,16 +54,16 @@ class RecyclerViewHabbitAdapter: RecyclerView.Adapter<RecyclerViewHabbitAdapter.
 
     override fun getItemCount() = this.items.size
 
-    fun addItem(model: Habbit){
+    fun addItem(model: Habit){
         this.items.add(model)
         notifyItemInserted(itemCount - 1)
     }
-    fun addItemTop(model: Habbit){
+    fun addItemTop(model: Habit){
         this.items.add(0, model)
         notifyItemInserted(0)
     }
 
-    fun addItemAt(model: Habbit, position: Int) {
+    fun addItemAt(model: Habit, position: Int) {
         this.items.add(position, model)
         notifyItemInserted(position)
     }
@@ -79,7 +73,7 @@ class RecyclerViewHabbitAdapter: RecyclerView.Adapter<RecyclerViewHabbitAdapter.
         notifyItemRemoved(position)
     }
 
-    fun getItem(position: Int): Habbit{
+    fun getItem(position: Int): Habit{
         return this.items[position]
     }
 

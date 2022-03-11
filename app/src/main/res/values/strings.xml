@@ -9,6 +9,7 @@
 
     <!-- Действия -->
     <string name="marked">Отмечено</string>
+    <string name="notMarked">Не отмечено</string>
     <string name="deleted">Удалено</string>
     <string name="undo">Отмена</string>
     <string name="addHabit">Добавить привычку</string>
@@ -21,6 +22,7 @@
     <string name="day100">100 дней</string>
     <string name="remind">Напоминать</string>
     <string name="startFrom">Начать с</string>
+    <string name="delayed">Отложено на</string>
 
     <!-- Тексты -->
     <string name="introductionFirst">Положительные привычки улучшают ваше физическое, психологическое и эмоциональное состояние</string>
@@ -29,4 +31,5 @@
     <!-- Остальное -->
     <string name="outOf">из</string>
     <string name="tomorrow">Завтра</string>
+    <string name="today">Сегодня</string>
 </resources>

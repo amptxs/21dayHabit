@@ -2,26 +2,38 @@ package com.cwl.habbitformation.activities
 
 import android.animation.AnimatorSet
 import android.animation.ValueAnimator
+import android.app.DatePickerDialog
+import android.app.DatePickerDialog.OnDateSetListener
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.view.animation.AccelerateDecelerateInterpolator
-import android.view.animation.AnimationSet
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.widget.doOnTextChanged
 import androidx.recyclerview.widget.LinearSnapHelper
 import androidx.recyclerview.widget.SnapHelper
 import com.cwl.habbitformation.R
 import com.cwl.habbitformation.adapters.RecyclerViewPickerAdapter
+import com.cwl.habbitformation.models.Habit
 import kotlinx.android.synthetic.main.activity_add_habit.*
 import travel.ithaka.android.horizontalpickerlib.PickerLayoutManager
-import java.time.Duration
+import java.lang.String
 import java.util.*
+import java.util.concurrent.TimeUnit
 
 
 class AddHabitActivity : AppCompatActivity() {
 
+    private var date = Calendar.getInstance()
+    private var time = Calendar.getInstance()
+
+    private var hoursNotify = 0
+    private var minutesNotify = 0
+
     private var days = 0;
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -30,6 +42,19 @@ class AddHabitActivity : AppCompatActivity() {
         initializeSwitch()
         initializePicker(23,59)
         initializeCheckBox()
+
+        buttonSave.isEnabled = false
+        LabelInput.doOnTextChanged { text, start, before, count ->
+            buttonSave.isEnabled = !LabelInput.text.isNullOrEmpty()
+        }
+
+        buttonSave.setOnClickListener {
+            save()
+        }
+
+        buttonDateSelect.setOnClickListener {
+            setDate()
+        }
     }
 
     private fun initializeSwitch(){
@@ -70,6 +95,7 @@ class AddHabitActivity : AppCompatActivity() {
         val snapHelperMinutes: SnapHelper = LinearSnapHelper()
         snapHelperMinutes.attachToRecyclerView(verticalSliderMinutes)
 
+
         var adapterHours = RecyclerViewPickerAdapter()
         var adapterMinutes = RecyclerViewPickerAdapter()
 
@@ -78,25 +104,34 @@ class AddHabitActivity : AppCompatActivity() {
             layoutManager = pickerLayoutManagerHours
         }
 
+        var density = applicationContext.getResources().getDisplayMetrics().density
+        var widthPixels = applicationContext.getResources().getDisplayMetrics().widthPixels
+
+        //25 - picker item text size *2 is for two symbols
+        //15 - picker left\right margin
+        var padding = (widthPixels - addHabitLayout.paddingLeft- 25*density*2 - 15*density*2) / 2
+        verticalSliderHours.setPadding(padding.toInt(),0,padding.toInt(),0)
+        verticalSliderMinutes.setPadding(padding.toInt(),0,padding.toInt(),0)
+
         verticalSliderMinutes.apply {
             adapter = adapterMinutes
             layoutManager = pickerLayoutManagerMinutes
         }
 
         for (n in 0..hours)
-            adapterHours.addItem(n)
+            adapterHours.addItem(formattedString(n))
 
         for (n in 0..minutes)
-            adapterMinutes.addItem(n)
+            adapterMinutes.addItem(formattedString(n))
 
         heightAnimation(SliderLayout, SliderLayout.height, 1, 1)
 
 
         pickerLayoutManagerHours.setOnScrollStopListener { view ->
-            Log.d("Hours", (view as TextView).text.toString())
+            hoursNotify = (view as TextView).text.toString().toInt()
         }
         pickerLayoutManagerMinutes.setOnScrollStopListener { view ->
-            Log.d("Minutes", (view as TextView).text.toString())
+            minutesNotify = (view as TextView).text.toString().toInt()
         }
     }
 
@@ -108,6 +143,9 @@ class AddHabitActivity : AppCompatActivity() {
 
             if (checkBoxRemind.isChecked){
                 heightAnimation(SliderLayout, SliderLayout.height, verticalSliderHours.height*2, 500)
+                time.timeInMillis = 0;
+                hoursNotify = Calendar.getInstance().time.hours
+                minutesNotify = Calendar.getInstance().time.minutes
             }
             else{
                 heightAnimation(SliderLayout, SliderLayout.height, 1, 500)
@@ -116,17 +154,63 @@ class AddHabitActivity : AppCompatActivity() {
         }
     }
 
+    private fun save(){
+        if (!checkBoxRemind.isChecked)
+            time = null
+        var habit = Habit(LabelInput.text.toString(),DescriptionInput.text.toString(),
+            date.time, null, days, timeToMilis(hoursNotify, minutesNotify))
+
+        var intentBack = Intent().putExtra("Object", habit)
+        setResult(1, intentBack)
+        finish()
+    }
+
     private fun heightAnimation(view: View, currentHeight: Int, newHeight:Int, duration: Long){
         val animator = ValueAnimator.ofInt(currentHeight, newHeight).setDuration(duration)
         animator.addUpdateListener {
             var value: Int = it.animatedValue as Int
             view.layoutParams.height = value
             view.requestLayout()
-            Log.d("test", view.height.toString())
         }
         val animationSet = AnimatorSet()
         animationSet.setInterpolator(AccelerateDecelerateInterpolator())
         animationSet.play(animator)
         animationSet.start()
+    }
+
+    var d =
+        OnDateSetListener { view, year, monthOfYear, dayOfMonth ->
+            date[Calendar.YEAR] = year
+            date[Calendar.MONTH] = monthOfYear
+            date[Calendar.DAY_OF_MONTH] = dayOfMonth
+
+            buttonDateSelect.text = "${formattedString(date[Calendar.DAY_OF_MONTH])}" +
+                    ".${formattedString(date[Calendar.MONTH])}"
+        }
+
+    private fun setDate() {
+        var pickerDialog = DatePickerDialog(
+            this,R.style.DialogTheme,d,
+            date.get(Calendar.YEAR),
+            date.get(Calendar.MONTH),
+            date.get(Calendar.DAY_OF_MONTH)
+        )
+        var picker = pickerDialog.datePicker
+        picker.minDate=Calendar.getInstance().timeInMillis
+        pickerDialog.show()
+    }
+
+    private fun formattedString(int: Int): kotlin.String{
+        return String.format("%02d", int)
+    }
+
+    private fun timeToMilis(h: Int, m:Int): Long{
+        var mill = (h * (1000*60*60) + m * (1000*60)).toLong()
+
+        Log.d("test", String.format("%d hours, %d minutes",
+            TimeUnit.MILLISECONDS.toHours(mill),
+            TimeUnit.MILLISECONDS.toMinutes(mill) - TimeUnit.HOURS.toMinutes(TimeUnit.MILLISECONDS.toHours(mill))))
+
+        return mill
     }
 }

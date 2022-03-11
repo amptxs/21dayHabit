@@ -55,7 +55,7 @@
             android:orientation="vertical">
 
             <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/habbitContainer"
+                android:id="@+id/habitContainer"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="12dp"
@@ -76,7 +76,7 @@
                 app:iconGravity="textStart"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/habbitContainer" />
+                app:layout_constraintTop_toBottomOf="@+id/habitContainer" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
     </ScrollView>

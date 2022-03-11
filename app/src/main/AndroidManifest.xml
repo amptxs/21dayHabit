@@ -11,6 +11,7 @@
         android:theme="@style/Theme.21DayHabbit">
         <activity
             android:name=".activities.AddHabitActivity"
+            android:windowSoftInputMode="adjustPan"
             android:exported="false" />
         <activity
             android:name=".MainActivity"

@@ -1,9 +1,6 @@
 package com.cwl.habbitformation.adapters
 
 import android.graphics.Canvas
-import android.graphics.Color
-import android.graphics.drawable.ColorDrawable
-import android.util.Log
 import android.view.animation.AccelerateDecelerateInterpolator
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.ItemTouchHelper
@@ -11,12 +8,10 @@ import androidx.recyclerview.widget.ItemTouchHelper.*
 import androidx.recyclerview.widget.RecyclerView
 import com.cwl.habbitformation.MainActivity
 import com.cwl.habbitformation.R
-import com.cwl.habbitformation.models.Habbit
-import java.util.*
 
-class RecyclerViewTouchHelper(recyclerViewHabbitAdapter: RecyclerViewHabbitAdapter,
-                                mainActivity: MainActivity) {
-    var adapter = recyclerViewHabbitAdapter
+class RecyclerViewTouchHelper(recyclerViewHabitAdapter: RecyclerViewHabitAdapter,
+                              mainActivity: MainActivity) {
+    var adapter = recyclerViewHabitAdapter
     var parent = mainActivity
 
     val ItemTouchCallback =
@@ -26,7 +21,7 @@ class RecyclerViewTouchHelper(recyclerViewHabbitAdapter: RecyclerViewHabbitAdapt
                                 viewHolder: RecyclerView.ViewHolder,
                                 target: RecyclerView.ViewHolder): Boolean {
 
-                val adapter = recyclerView.adapter as RecyclerViewHabbitAdapter
+                val adapter = recyclerView.adapter as RecyclerViewHabitAdapter
                 val from = viewHolder.adapterPosition
                 val to = target.adapterPosition
                 adapter.moveItem(from, to)
@@ -37,7 +32,7 @@ class RecyclerViewTouchHelper(recyclerViewHabbitAdapter: RecyclerViewHabbitAdapt
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder,
                                   direction: Int) {
 
-                parent.removeAndNotify(viewHolder as RecyclerViewHabbitAdapter.ViewHolder)
+                parent.removeAndNotify(viewHolder as RecyclerViewHabitAdapter.ViewHolder)
 
             }
 
