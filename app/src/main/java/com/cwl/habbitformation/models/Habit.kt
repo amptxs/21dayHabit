@@ -28,29 +28,60 @@ class Habit(label: String, description: String, created: Date, lastUpdate: Date?
     var Progress: Int = 0
 
 
+    fun isActive(): Boolean {
+        return dateDifference() <= 2 && Progress != Duration
+    }
+
+    fun isDone(): Boolean {
+        return Progress == Duration
+    }
+
+    fun isDelayed(): Boolean{
+        return delayDateDifference() > 0
+    }
+
+    fun canBeDone(): Boolean{
+        return dateDifference() > 1
+    }
+
+    fun markAsDone(){
+        Progress +=1
+
+        var date = Calendar.getInstance()
+        date[Calendar.HOUR_OF_DAY] = 0
+        date[Calendar.MINUTE] = 0
+        date[Calendar.SECOND] = 0
+
+        LastUpdate = date.time
+
+        if (isDelayed())
+            Created = date.time
+    }
 
     fun getStatus(context: Context): String{
         return when {
-            delayDateDifference() > 0 -> (context.getString(R.string.delayed) + " " +
-                    DateFormat.format("dd.MM", Created))
-            Progress == Duration -> context.getString(R.string.statusDone)
-            dateDifference() <= 1 -> context.getString(R.string.statusActive)
+            isDelayed() -> (context.getString(R.string.delayed) + " " + DateFormat.format("dd.MM", Created))
+            isDone() -> context.getString(R.string.statusDone)
+            dateDifference() <= 2 -> context.getString(R.string.statusActive)
             else -> context.getString(R.string.statusInactive)
         }
 
         return dateDifference().toString()
     }
 
-    fun isActive(): Boolean {
-        return dateDifference() <= 1 || Progress == Duration
-    }
-
     fun getStatusColor(context: Context): Int {
         return when {
-            delayDateDifference() > 0 -> ContextCompat.getColor(context, R.color.delayed)
-            dateDifference() <= 1 || Progress == Duration -> ContextCompat.getColor(context, R.color.active)
+            isDelayed() -> ContextCompat.getColor(context, R.color.delayed)
+            dateDifference() <= 2 || isDone() -> ContextCompat.getColor(context, R.color.active)
             else -> ContextCompat.getColor(context, R.color.inactive)
         }
+    }
+
+    fun getLastUpdate(context: Context): CharSequence{
+        return if (LastUpdate == null)
+            context.getString(R.string.notMarked)
+        else
+            DateFormat.format("dd.MM.yyyy", LastUpdate)
     }
 
     fun getLastUpdateFormatted(context: Context): CharSequence{
@@ -69,24 +100,26 @@ class Habit(label: String, description: String, created: Date, lastUpdate: Date?
     }
 
     fun getTransparency(): Float {
-        return if (Progress == Duration || dateDifference() > 1 ) 0.4f
+        return if (Progress == Duration || dateDifference() > 2 ) 0.4f
         else 1.0f
     }
 
-    private fun dateDifference(): Long{
+    private fun dateDifference(): Double{
         if (LastUpdate == null)
-            return (Calendar.getInstance().time.time - Created.time) / (1000 * 60 * 60 * 24)
-        return (Calendar.getInstance().time.time - LastUpdate!!.time) / (1000 * 60 * 60 * 24)
+            return (Calendar.getInstance().time.time - Created.time).toDouble() / (1000 * 60 * 60 * 24)
+        return (Calendar.getInstance().time.time - LastUpdate!!.time).toDouble() / (1000 * 60 * 60 * 24)
     }
 
     private fun delayDateDifference(): Double{
         return (Created.time - Calendar.getInstance().time.time).toDouble() / (1000 * 60 * 60 * 24)
     }
 
-    fun millisToNormal(mill: Long)
-    {
-        Log.d("test", java.lang.String.format("%d hours, %d minutes",
-            TimeUnit.MILLISECONDS.toHours(mill),
-            TimeUnit.MILLISECONDS.toMinutes(mill) - TimeUnit.HOURS.toMinutes(TimeUnit.MILLISECONDS.toHours(mill))))
+    fun millisToNormal(context: Context): String {
+        return if (NotifyAt == null)
+            context.getString(R.string.notSet)
+        else
+            String.format("%d:%d",
+                TimeUnit.MILLISECONDS.toHours(NotifyAt!!),
+                TimeUnit.MILLISECONDS.toMinutes(NotifyAt!!) - TimeUnit.HOURS.toMinutes(TimeUnit.MILLISECONDS.toHours(NotifyAt!!)))
     }
 }

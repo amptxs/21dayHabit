@@ -27,7 +27,6 @@ import java.util.concurrent.TimeUnit
 class AddHabitActivity : AppCompatActivity() {
 
     private var date = Calendar.getInstance()
-    private var time = Calendar.getInstance()
 
     private var hoursNotify = 0
     private var minutesNotify = 0
@@ -143,7 +142,7 @@ class AddHabitActivity : AppCompatActivity() {
 
             if (checkBoxRemind.isChecked){
                 heightAnimation(SliderLayout, SliderLayout.height, verticalSliderHours.height*2, 500)
-                time.timeInMillis = 0;
+
                 hoursNotify = Calendar.getInstance().time.hours
                 minutesNotify = Calendar.getInstance().time.minutes
             }
@@ -155,10 +154,12 @@ class AddHabitActivity : AppCompatActivity() {
     }
 
     private fun save(){
+        var notifyTimeLong: Long? = timeToMilis(hoursNotify, minutesNotify)
         if (!checkBoxRemind.isChecked)
-            time = null
+            notifyTimeLong = null
+
         var habit = Habit(LabelInput.text.toString(),DescriptionInput.text.toString(),
-            date.time, null, days, timeToMilis(hoursNotify, minutesNotify))
+            date.time, null, days, notifyTimeLong)
 
         var intentBack = Intent().putExtra("Object", habit)
         setResult(1, intentBack)

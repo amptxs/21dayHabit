@@ -2,6 +2,7 @@ package com.cwl.habbitformation
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.util.TypedValue
 import android.widget.Button
 import android.widget.TextView
@@ -46,14 +47,15 @@ class MainActivity : AppCompatActivity() {
         habitContainer.setItemViewCacheSize(100)
         ItemTouchHelper(recyclerTouchHelper.ItemTouchCallback).attachToRecyclerView(habitContainer)
 
-
-        val habit1 = Habit("Заняться спортом", "тест", Calendar.getInstance().time,
-            Calendar.getInstance().time, 21, null)
+        val habit1Date = Calendar.getInstance()
+        habit1Date.add(Calendar.DATE, -1);
+        val habit1 = Habit("Заняться спортом", "Соблюдать составленную программу упраженений", Calendar.getInstance().time,
+            habit1Date.time, 21, null)
         habit1.Progress = 10
 
         val sdf = SimpleDateFormat("dd/MM/yyyy")
         val d = sdf.parse("28/02/2022")
-        val habit2 = Habit("Здорово питаться", "тест", d, d, 21, null)
+        val habit2 = Habit("Здорово питаться", "Соблюдать график приемов пищи", d, d, 21, null)
         habit2.Progress = 7
 
         val habit3 = Habit("Начать бегать", "тест", Calendar.getInstance().time,
@@ -72,7 +74,6 @@ class MainActivity : AppCompatActivity() {
         AddButton.setOnClickListener(){
             openAddHabitActivity()
         }
-
 
     }
 
@@ -124,17 +125,27 @@ class MainActivity : AppCompatActivity() {
             topMargin = 0
             }
     }
+    //0-back pressed
+    //1-new data
+    //5-updated data
 
-    var resultAddHabitActivity = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+    var resultActivity = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
         if (it.resultCode == 1){
             val data: Intent? = it.data
             val newHabit = data?.getSerializableExtra("Object") as Habit
             addItemTop(newHabit)
         }
+        if (it.resultCode == 5){
+            val data: Intent? = it.data
+            val updatedHabit = data?.getSerializableExtra("ViewedItem") as Habit
+            val index = data?.getSerializableExtra("Index") as Int
+            recyclerAdapter.updateItemAt(updatedHabit, index)
+        }
     }
+
     private fun openAddHabitActivity(){
         var intent = Intent(this, AddHabitActivity::class.java)
-        resultAddHabitActivity.launch(intent)
+        resultActivity.launch(intent)
     }
 
 }

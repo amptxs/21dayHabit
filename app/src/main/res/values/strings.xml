@@ -8,26 +8,35 @@
     <string name="statusDone">Выполнено</string>
 
     <!-- Действия -->
-    <string name="marked">Отмечено</string>
-    <string name="notMarked">Не отмечено</string>
-    <string name="deleted">Удалено</string>
+
+    <string name="execute">Выполнить</string>
     <string name="undo">Отмена</string>
     <string name="addHabit">Добавить привычку</string>
     <string name="save">Сохранить</string>
-    
+    <string name="edit">Изменить</string>
+
     <!-- Заголовки -->
+    <string name="notMarked">Не отмечено</string>
+    <string name="deleted">Удалено</string>
+    <string name="marked">Отмечено</string>
     <string name="label">Название</string>
     <string name="description">Описание</string>
+    <string name="progress">Прогресс</string>
+    <string name="status">Статус</string>
+    <string name="notify">Напоминание</string>
     <string name="day21">21 день</string>
     <string name="day100">100 дней</string>
     <string name="remind">Напоминать</string>
     <string name="startFrom">Начать с</string>
-    <string name="delayed">Отложено на</string>
+    <string name="delayed">Старт с</string>
+    <string name="notSet">Не задано</string>
+    <string name="startNow">Начать сейчас</string>
 
     <!-- Тексты -->
     <string name="introductionFirst">Положительные привычки улучшают ваше физическое, психологическое и эмоциональное состояние</string>
     <string name="introductionSecond">Начните прямо сейчас нажав кнопку “добавить привычку”</string>
-    
+    <string name="todayMarked">Сегодня привычка соблюдена</string>
+
     <!-- Остальное -->
     <string name="outOf">из</string>
     <string name="tomorrow">Завтра</string>
