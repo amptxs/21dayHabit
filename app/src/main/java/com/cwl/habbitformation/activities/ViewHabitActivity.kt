@@ -18,8 +18,12 @@ import com.cwl.habbitformation.R
 import com.cwl.habbitformation.models.Habit
 import kotlinx.android.synthetic.main.activity_view_habit.*
 import kotlinx.android.synthetic.main.materialcardview_habit.*
+import nl.dionsegijn.konfetti.core.*
+import nl.dionsegijn.konfetti.core.emitter.Emitter
+import nl.dionsegijn.konfetti.core.models.Size
 import java.time.Duration
 import java.util.*
+import java.util.concurrent.TimeUnit
 
 
 class ViewHabitActivity : AppCompatActivity() {
@@ -42,8 +46,11 @@ class ViewHabitActivity : AppCompatActivity() {
                 buttonDoneText.text = baseContext.getString(R.string.startNow)
                 initializeDoneButton()
             }
-            habit.isActive() && habit.canBeDone() -> {
+            habit.isActive() && habit.canBeDone() ->
                 initializeDoneButton()
+            habit.isActive() && !habit.canBeDone() ->{
+                buttonEdit.isEnabled = true
+                buttonDoneLayout.isGone = true
             }
             else -> {
                 buttonDoneLayout.isGone = true
@@ -115,6 +122,8 @@ class ViewHabitActivity : AppCompatActivity() {
     }
 
     private fun markAsDone(){
+        konfettiView.start(parade())
+
         resultCode = 5
 
         habit.markAsDone()
@@ -125,5 +134,28 @@ class ViewHabitActivity : AppCompatActivity() {
         buttonDoneText.text = baseContext.getString(R.string.todayMarked)
         buttonDoneText.setTextSize(TypedValue.COMPLEX_UNIT_SP, 24f)
         buttonEdit.isEnabled = true
+    }
+
+    private fun parade(): List<Party> {
+        val density = applicationContext.getResources().getDisplayMetrics().density
+
+        val party = Party(
+            speed = 10f,
+            maxSpeed = density * 10,
+            damping = 0.95f,
+            angle = Angle.RIGHT - 45,
+            spread = Spread.SMALL,
+            colors = listOf(0x52E3A6, 0xEE6A6A, 0xFFB800, 0x008EFB),
+            emitter = Emitter(duration = 2, TimeUnit.SECONDS).perSecond(15),
+            position = Position.Relative(0.0, 0.5)
+        )
+
+        return listOf(
+            party,
+            party.copy(
+                angle = party.angle - 90,
+                position = Position.Relative(1.0, 0.5)
+            ),
+        )
     }
 }

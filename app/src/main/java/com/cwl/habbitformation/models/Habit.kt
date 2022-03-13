@@ -41,7 +41,8 @@ class Habit(label: String, description: String, created: Date, lastUpdate: Date?
     }
 
     fun canBeDone(): Boolean{
-        return dateDifference() > 1
+        return if (LastUpdate == null) true
+        else dateDifference() > 1
     }
 
     fun markAsDone(){
