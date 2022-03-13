@@ -12,10 +12,13 @@ import android.view.View
 import android.view.View.OnTouchListener
 import android.view.animation.AccelerateDecelerateInterpolator
 import android.widget.ProgressBar
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isGone
 import com.cwl.habbitformation.R
+import com.cwl.habbitformation.models.Codes
 import com.cwl.habbitformation.models.Habit
+import kotlinx.android.synthetic.main.activity_add_habit.*
 import kotlinx.android.synthetic.main.activity_view_habit.*
 import kotlinx.android.synthetic.main.materialcardview_habit.*
 import nl.dionsegijn.konfetti.core.*
@@ -29,35 +32,15 @@ import java.util.concurrent.TimeUnit
 class ViewHabitActivity : AppCompatActivity() {
 
     private lateinit var habit: Habit
-    private var resultCode = 0
+    private var resultCode = Codes().BACK
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_view_habit)
 
         habit= intent.getSerializableExtra("Object") as Habit
         loadModel(habit)
-
-        buttonEdit.isEnabled = false
-
-
-        when {
-            habit.isDelayed() -> {
-                buttonEdit.isEnabled = true
-                buttonDoneText.text = baseContext.getString(R.string.startNow)
-                initializeDoneButton()
-            }
-            habit.isActive() && habit.canBeDone() ->
-                initializeDoneButton()
-            habit.isActive() && !habit.canBeDone() ->{
-                buttonEdit.isEnabled = true
-                buttonDoneLayout.isGone = true
-            }
-            else -> {
-                buttonDoneLayout.isGone = true
-            }
-        }
-
-
+        checkHabitStatus()
+        initializeEditButton()
     }
 
     override fun onBackPressed() {
@@ -67,6 +50,7 @@ class ViewHabitActivity : AppCompatActivity() {
         finish()
         super.onBackPressed()
     }
+
     private fun loadModel(habit: Habit){
         viewLabel.text  = habit.Label
         viewDescription.text = habit.Description
@@ -76,6 +60,27 @@ class ViewHabitActivity : AppCompatActivity() {
         statusValue.setTextColor(habit.getStatusColor(baseContext))
         progressValue.text = habit.getProgressText(baseContext)
         notifyValue.text = habit.millisToNormal(baseContext)
+    }
+
+    private fun checkHabitStatus(){
+        buttonEdit.isEnabled = false
+
+        when {
+            habit.isDelayed() -> {
+                buttonEdit.isEnabled = true
+                buttonDoneText.text = baseContext.getString(R.string.startNow)
+                initializeDoneButton()
+            }
+            habit.isActive() && habit.canBeDone() ->
+                initializeDoneButton()
+            habit.isActive() && !habit.canBeDone() ->
+            {
+                doneToday()
+            }
+            else -> {
+                buttonDoneLayout.isGone = true
+            }
+        }
     }
 
     private fun initializeDoneButton(){
@@ -104,6 +109,25 @@ class ViewHabitActivity : AppCompatActivity() {
         }
     }
 
+    var resultActivity = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+        if (it.resultCode == Codes().EDIT){
+            val data: Intent? = it.data
+            val updatedHabit = data?.getSerializableExtra("EditedItem") as Habit
+            habit = updatedHabit
+            resultCode = Codes().EDIT
+            loadModel(habit)
+        }
+    }
+
+    private fun initializeEditButton(){
+        buttonEdit.setOnClickListener {
+            var intent = Intent(this, AddHabitActivity::class.java)
+                .putExtra("RequestCode", Codes().EDIT)
+                .putExtra("ObjectToEdit", habit)
+            resultActivity.launch(intent)
+        }
+    }
+
     private fun createAnimator(from: Int, to: Int, duration: Int): ValueAnimator{
         var animator = ValueAnimator.ofInt(from, to)
             .setDuration(duration.toLong())
@@ -124,16 +148,22 @@ class ViewHabitActivity : AppCompatActivity() {
     private fun markAsDone(){
         konfettiView.start(parade())
 
-        resultCode = 5
+        resultCode = Codes().EDIT
 
         habit.markAsDone()
 
         loadModel(habit)
+        doneToday()
+    }
 
+    private fun doneToday(){
         buttonDone.isGone = true
         buttonDoneText.text = baseContext.getString(R.string.todayMarked)
         buttonDoneText.setTextSize(TypedValue.COMPLEX_UNIT_SP, 24f)
         buttonEdit.isEnabled = true
+
+        if (habit.isDone())
+            buttonEdit.isEnabled = false
     }
 
     private fun parade(): List<Party> {

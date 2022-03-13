@@ -16,6 +16,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.cwl.habbitformation.activities.AddHabitActivity
 import com.cwl.habbitformation.adapters.RecyclerViewHabitAdapter
 import com.cwl.habbitformation.adapters.RecyclerViewTouchHelper
+import com.cwl.habbitformation.models.Codes
 import com.cwl.habbitformation.models.Habit
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.activity_main.*
@@ -51,7 +52,7 @@ class MainActivity : AppCompatActivity() {
         habit1Date.add(Calendar.DATE, -1);
         val habit1 = Habit("Заняться спортом", "Соблюдать составленную программу упраженений", Calendar.getInstance().time,
             habit1Date.time, 21, null)
-        habit1.Progress = 10
+        habit1.Progress = 15
 
         val sdf = SimpleDateFormat("dd/MM/yyyy")
         val d = sdf.parse("28/02/2022")
@@ -125,26 +126,24 @@ class MainActivity : AppCompatActivity() {
             topMargin = 0
             }
     }
-    //0-back pressed
-    //1-new data
-    //5-updated data
 
     var resultActivity = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-        if (it.resultCode == 1){
+        if (it.resultCode == Codes().ADD){
             val data: Intent? = it.data
             val newHabit = data?.getSerializableExtra("Object") as Habit
             addItemTop(newHabit)
         }
-        if (it.resultCode == 5){
+        if (it.resultCode == Codes().EDIT){
             val data: Intent? = it.data
             val updatedHabit = data?.getSerializableExtra("ViewedItem") as Habit
             val index = data?.getSerializableExtra("Index") as Int
             recyclerAdapter.updateItemAt(updatedHabit, index)
         }
+        Log.d("tes=asdf===sd=f=", it.resultCode.toString())
     }
 
     private fun openAddHabitActivity(){
-        var intent = Intent(this, AddHabitActivity::class.java)
+        var intent = Intent(this, AddHabitActivity::class.java).putExtra("RequestCode",Codes().ADD)
         resultActivity.launch(intent)
     }
 

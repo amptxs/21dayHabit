@@ -119,8 +119,16 @@ class Habit(label: String, description: String, created: Date, lastUpdate: Date?
         return if (NotifyAt == null)
             context.getString(R.string.notSet)
         else
-            String.format("%d:%d",
+            String.format("%02d:%02d",
                 TimeUnit.MILLISECONDS.toHours(NotifyAt!!),
                 TimeUnit.MILLISECONDS.toMinutes(NotifyAt!!) - TimeUnit.HOURS.toMinutes(TimeUnit.MILLISECONDS.toHours(NotifyAt!!)))
+    }
+
+    fun getNotifyHours(): Long{
+        return TimeUnit.MILLISECONDS.toHours(NotifyAt!!)
+    }
+
+    fun getNotifyMinutes(): Long{
+        return TimeUnit.MILLISECONDS.toMinutes(NotifyAt!!) - TimeUnit.HOURS.toMinutes(TimeUnit.MILLISECONDS.toHours(NotifyAt!!))
     }
 }

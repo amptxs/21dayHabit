@@ -23,7 +23,6 @@ class RecyclerViewPickerAdapter: RecyclerView.Adapter<RecyclerViewPickerAdapter.
         }
     }
 
-
     override fun onCreateViewHolder(viewGroup: ViewGroup, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(viewGroup.context)
             .inflate(R.layout.picker_item_layout, viewGroup, false)
@@ -41,11 +40,5 @@ class RecyclerViewPickerAdapter: RecyclerView.Adapter<RecyclerViewPickerAdapter.
         this.items.add(model)
         notifyItemInserted(itemCount - 1)
     }
-    fun setMargins(v: View, l: Int, t: Int, r: Int, b: Int) {
-        if (v.layoutParams is MarginLayoutParams) {
-            val p = v.layoutParams as MarginLayoutParams
-            p.setMargins(l, t, r, b)
-            v.requestLayout()
-        }
-    }
+
 }

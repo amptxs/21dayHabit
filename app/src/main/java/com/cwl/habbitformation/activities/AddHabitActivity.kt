@@ -7,17 +7,23 @@ import android.app.DatePickerDialog.OnDateSetListener
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
+import android.view.KeyEvent
 import android.view.View
+import android.view.ViewGroup
 import android.view.animation.AccelerateDecelerateInterpolator
+import android.widget.Button
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.isGone
 import androidx.core.widget.doOnTextChanged
 import androidx.recyclerview.widget.LinearSnapHelper
 import androidx.recyclerview.widget.SnapHelper
 import com.cwl.habbitformation.R
 import com.cwl.habbitformation.adapters.RecyclerViewPickerAdapter
+import com.cwl.habbitformation.models.Codes
 import com.cwl.habbitformation.models.Habit
 import kotlinx.android.synthetic.main.activity_add_habit.*
+import kotlinx.android.synthetic.main.activity_view_habit.*
 import travel.ithaka.android.horizontalpickerlib.PickerLayoutManager
 import java.lang.String
 import java.util.*
@@ -33,16 +39,22 @@ class AddHabitActivity : AppCompatActivity() {
 
     private var days = 0;
 
+    private var requestCode = Codes().BACK
+    private lateinit var editedHabit: Habit
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_add_habit)
 
-        initializeSwitch()
-        initializePicker(23,59)
-        initializeCheckBox()
+        requestCode = intent.getSerializableExtra("RequestCode") as Int
 
-        buttonSave.isEnabled = false
+        initializePicker(23,59)
+
+        if (requestCode == Codes().ADD)
+            requestAdd()
+        else if (requestCode == Codes().EDIT)
+            requestEdit()
+
         LabelInput.doOnTextChanged { text, start, before, count ->
             buttonSave.isEnabled = !LabelInput.text.isNullOrEmpty()
         }
@@ -54,10 +66,47 @@ class AddHabitActivity : AppCompatActivity() {
         buttonDateSelect.setOnClickListener {
             setDate()
         }
+
     }
 
-    private fun initializeSwitch(){
-        onSwitchClick(button21day)
+    private fun requestAdd(){
+        initializeSwitch(button21day)
+        initializeCheckBox()
+
+        buttonSave.isEnabled = false
+    }
+
+    private fun requestEdit()
+    {
+        editedHabit = intent.getSerializableExtra("ObjectToEdit") as Habit
+
+        LabelInput.setText(editedHabit.Label)
+        DescriptionInput.setText(editedHabit.Description)
+        StartFromLayout.isGone = true
+
+        when (editedHabit.Duration) {
+            21 -> initializeSwitch(button21day)
+            else -> initializeSwitch(button100days)
+        }
+        if (editedHabit.NotifyAt != null) {
+            checkBoxRemind.isChecked = true
+            heightAnimation(SliderLayout, SliderLayout.height, verticalSliderHours.height*2, 500)
+            initializeCheckBox()
+            verticalSliderHours.smoothScrollToPosition(editedHabit.getNotifyHours().toInt())
+            verticalSliderMinutes.smoothScrollToPosition(editedHabit.getNotifyMinutes().toInt())
+        }
+        else
+            initializeCheckBox()
+        if (editedHabit.Progress >= 21)
+        {
+            setMargins(checkBoxRemind, 32, 0, 0, 0)
+            switchLayout.isGone = true
+        }
+
+    }
+
+    private fun initializeSwitch(button: Button){
+        onSwitchClick(button)
         button21day.setOnClickListener {
             onSwitchClick(it)
         }
@@ -136,12 +185,13 @@ class AddHabitActivity : AppCompatActivity() {
 
     private fun initializeCheckBox(){
         checkBoxRemind.setOnCheckedChangeListener { compoundButton, b ->
-            verticalSliderHours.smoothScrollToPosition(Calendar.getInstance().time.hours)
-            verticalSliderMinutes.smoothScrollToPosition(Calendar.getInstance().time.minutes)
 
 
             if (checkBoxRemind.isChecked){
                 heightAnimation(SliderLayout, SliderLayout.height, verticalSliderHours.height*2, 500)
+
+                verticalSliderHours.smoothScrollToPosition(Calendar.getInstance().time.hours)
+                verticalSliderMinutes.smoothScrollToPosition(Calendar.getInstance().time.minutes)
 
                 hoursNotify = Calendar.getInstance().time.hours
                 minutesNotify = Calendar.getInstance().time.minutes
@@ -158,12 +208,27 @@ class AddHabitActivity : AppCompatActivity() {
         if (!checkBoxRemind.isChecked)
             notifyTimeLong = null
 
-        var habit = Habit(LabelInput.text.toString(),DescriptionInput.text.toString(),
-            date.time, null, days, notifyTimeLong)
+        Log.d("req", requestCode.toString())
+        when (requestCode) {
+            Codes().ADD -> {
+                var habit = Habit(LabelInput.text.toString(),DescriptionInput.text.toString().replace("\n", " "),
+                    date.time, null, days, notifyTimeLong)
+                var intentBack = Intent().putExtra("Object", habit)
+                setResult(Codes().ADD, intentBack)
+                finish()
+            }
+            Codes().EDIT -> {
+                editedHabit.Label = LabelInput.text.toString().replace("\n", " ")
+                editedHabit.Description = DescriptionInput.text.toString()
+                editedHabit.NotifyAt = notifyTimeLong
+                editedHabit.Duration = days
+                var intentBack = Intent().putExtra("EditedItem", editedHabit)
+                setResult(Codes().EDIT, intentBack)
+                finish()
+            }
+        }
 
-        var intentBack = Intent().putExtra("Object", habit)
-        setResult(1, intentBack)
-        finish()
+
     }
 
     private fun heightAnimation(view: View, currentHeight: Int, newHeight:Int, duration: Long){
@@ -216,5 +281,17 @@ class AddHabitActivity : AppCompatActivity() {
             TimeUnit.MILLISECONDS.toMinutes(mill) - TimeUnit.HOURS.toMinutes(TimeUnit.MILLISECONDS.toHours(mill))))
 
         return mill
+    }
+
+    fun setMargins(v: View, l: Int, t: Int, r: Int, b: Int) {
+        if (v.layoutParams is ViewGroup.MarginLayoutParams) {
+            val p = v.layoutParams as ViewGroup.MarginLayoutParams
+            val left = applicationContext.getResources().getDisplayMetrics().density.toInt() * l
+            val right = applicationContext.getResources().getDisplayMetrics().density.toInt() * r
+            val top = applicationContext.getResources().getDisplayMetrics().density.toInt() * t
+            val bottom = applicationContext.getResources().getDisplayMetrics().density.toInt() * b
+            p.setMargins(left, top, right, bottom)
+            v.requestLayout()
+        }
     }
 }
