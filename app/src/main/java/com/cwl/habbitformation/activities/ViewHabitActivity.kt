@@ -1,21 +1,22 @@
 package com.cwl.habbitformation.activities
 
-import android.R.attr.button
-import android.animation.AnimatorSet
 import android.animation.ValueAnimator
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import android.util.TypedValue
 import android.view.MotionEvent
-import android.view.View
-import android.view.View.OnTouchListener
-import android.view.animation.AccelerateDecelerateInterpolator
-import android.widget.ProgressBar
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.core.view.isGone
+import androidx.work.OneTimeWorkRequest
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
 import com.cwl.habbitformation.R
+import com.cwl.habbitformation.controllers.OneTimeScheduleWorker
 import com.cwl.habbitformation.models.Codes
 import com.cwl.habbitformation.models.Habit
 import kotlinx.android.synthetic.main.activity_add_habit.*
@@ -23,8 +24,6 @@ import kotlinx.android.synthetic.main.activity_view_habit.*
 import kotlinx.android.synthetic.main.materialcardview_habit.*
 import nl.dionsegijn.konfetti.core.*
 import nl.dionsegijn.konfetti.core.emitter.Emitter
-import nl.dionsegijn.konfetti.core.models.Size
-import java.time.Duration
 import java.util.*
 import java.util.concurrent.TimeUnit
 
@@ -154,7 +153,22 @@ class ViewHabitActivity : AppCompatActivity() {
 
         loadModel(habit)
         doneToday()
+
+        WorkManager.getInstance(baseContext).cancelAllWorkByTag(habit.getHabitAsWorkTag())
+        if (habit.hadNotify())
+            scheduleOneTimeNotification(habit.getTimeToNotify(), habit.getHabitAsWorkTag())
+
     }
+
+    fun scheduleOneTimeNotification(initialDelay: Long, WORK_TAG: String) {
+        val work =
+            OneTimeWorkRequestBuilder<OneTimeScheduleWorker>()
+                .setInitialDelay(initialDelay, TimeUnit.MILLISECONDS)
+                .addTag(WORK_TAG)
+                .build()
+        WorkManager.getInstance(baseContext).enqueue(work)
+    }
+
 
     private fun doneToday(){
         buttonDone.isGone = true

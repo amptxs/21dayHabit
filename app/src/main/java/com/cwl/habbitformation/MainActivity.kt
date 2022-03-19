@@ -1,6 +1,9 @@
 package com.cwl.habbitformation
 
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.util.TypedValue
@@ -9,6 +12,7 @@ import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.content.ContextCompat
 import androidx.core.view.isGone
 import androidx.core.view.updateLayoutParams
 import androidx.recyclerview.widget.ItemTouchHelper
@@ -37,6 +41,8 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        createNotificationChannel()
+
         habitContainer.apply {
             adapter = recyclerAdapter
             layoutManager= LinearLayoutManager(
@@ -51,7 +57,7 @@ class MainActivity : AppCompatActivity() {
         val habit1Date = Calendar.getInstance()
         habit1Date.add(Calendar.DATE, -1);
         val habit1 = Habit("Заняться спортом", "Соблюдать составленную программу упраженений", Calendar.getInstance().time,
-            habit1Date.time, 21, null)
+            habit1Date.time, 21, 1)
         habit1.Progress = 15
 
         val sdf = SimpleDateFormat("dd/MM/yyyy")
@@ -139,12 +145,27 @@ class MainActivity : AppCompatActivity() {
             val index = data?.getSerializableExtra("Index") as Int
             recyclerAdapter.updateItemAt(updatedHabit, index)
         }
-        Log.d("tes=asdf===sd=f=", it.resultCode.toString())
     }
 
     private fun openAddHabitActivity(){
         var intent = Intent(this, AddHabitActivity::class.java).putExtra("RequestCode",Codes().ADD)
         resultActivity.launch(intent)
+    }
+
+
+    private fun createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val name: CharSequence = Codes().CHANNEL_ID
+            val description: String = "21habitApp"
+            val importance = NotificationManager.IMPORTANCE_DEFAULT
+            val channel = NotificationChannel(Codes().CHANNEL_ID, name, importance)
+            channel.description = description
+            val notificationManager: NotificationManager = ContextCompat.getSystemService(
+                applicationContext,
+                NotificationManager::class.java
+            )!!
+            notificationManager.createNotificationChannel(channel)
+        }
     }
 
 }

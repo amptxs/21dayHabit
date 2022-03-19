@@ -18,8 +18,11 @@ import androidx.core.view.isGone
 import androidx.core.widget.doOnTextChanged
 import androidx.recyclerview.widget.LinearSnapHelper
 import androidx.recyclerview.widget.SnapHelper
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
 import com.cwl.habbitformation.R
 import com.cwl.habbitformation.adapters.RecyclerViewPickerAdapter
+import com.cwl.habbitformation.controllers.OneTimeScheduleWorker
 import com.cwl.habbitformation.models.Codes
 import com.cwl.habbitformation.models.Habit
 import kotlinx.android.synthetic.main.activity_add_habit.*
@@ -208,12 +211,17 @@ class AddHabitActivity : AppCompatActivity() {
         if (!checkBoxRemind.isChecked)
             notifyTimeLong = null
 
-        Log.d("req", requestCode.toString())
+
+
         when (requestCode) {
             Codes().ADD -> {
                 var habit = Habit(LabelInput.text.toString(),DescriptionInput.text.toString().replace("\n", " "),
                     date.time, null, days, notifyTimeLong)
                 var intentBack = Intent().putExtra("Object", habit)
+
+                if (habit.hadNotify())
+                    scheduleOneTimeNotification(habit.getTimeToNotifyOnCreate(), habit.getHabitAsWorkTag())
+
                 setResult(Codes().ADD, intentBack)
                 finish()
             }
@@ -222,6 +230,11 @@ class AddHabitActivity : AppCompatActivity() {
                 editedHabit.Description = DescriptionInput.text.toString()
                 editedHabit.NotifyAt = notifyTimeLong
                 editedHabit.Duration = days
+
+                WorkManager.getInstance(baseContext).cancelAllWorkByTag(editedHabit.getHabitAsWorkTag())
+                if (editedHabit.hadNotify())
+                    scheduleOneTimeNotification(editedHabit.getTimeToNotify(),  editedHabit.getHabitAsWorkTag())
+
                 var intentBack = Intent().putExtra("EditedItem", editedHabit)
                 setResult(Codes().EDIT, intentBack)
                 finish()
@@ -293,5 +306,14 @@ class AddHabitActivity : AppCompatActivity() {
             p.setMargins(left, top, right, bottom)
             v.requestLayout()
         }
+    }
+
+    fun scheduleOneTimeNotification(initialDelay: Long, WORK_TAG: kotlin.String) {
+        val work =
+            OneTimeWorkRequestBuilder<OneTimeScheduleWorker>()
+                .setInitialDelay(initialDelay, TimeUnit.MILLISECONDS)
+                .addTag(WORK_TAG)
+                .build()
+        WorkManager.getInstance(baseContext).enqueue(work)
     }
 }

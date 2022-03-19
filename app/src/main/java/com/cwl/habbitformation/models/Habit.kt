@@ -45,6 +45,10 @@ class Habit(label: String, description: String, created: Date, lastUpdate: Date?
         else dateDifference() > 1
     }
 
+    fun hadNotify():Boolean{
+        return (NotifyAt != null)
+    }
+
     fun markAsDone(){
         Progress +=1
 
@@ -130,5 +134,32 @@ class Habit(label: String, description: String, created: Date, lastUpdate: Date?
 
     fun getNotifyMinutes(): Long{
         return TimeUnit.MILLISECONDS.toMinutes(NotifyAt!!) - TimeUnit.HOURS.toMinutes(TimeUnit.MILLISECONDS.toHours(NotifyAt!!))
+    }
+
+    fun getTimeToNotify():Long{
+        var notifyDate = Calendar.getInstance()
+        notifyDate[Calendar.HOUR_OF_DAY] = getNotifyHours().toInt()
+        notifyDate[Calendar.MINUTE] = getNotifyMinutes().toInt()
+        notifyDate[Calendar.SECOND] = 0
+
+        Log.d("delayMS", ((notifyDate.timeInMillis + (1000 * 60 * 60 * 24)) - Calendar.getInstance().timeInMillis).toString())
+        return (notifyDate.timeInMillis + (1000 * 60 * 60 * 24)) - Calendar.getInstance().timeInMillis
+    }
+
+    fun getTimeToNotifyOnCreate():Long{
+        var notifyDate = Calendar.getInstance()
+        notifyDate[Calendar.HOUR_OF_DAY] = getNotifyHours().toInt()
+        notifyDate[Calendar.MINUTE] = getNotifyMinutes().toInt()
+        notifyDate[Calendar.SECOND] = 0
+
+        return when {
+            isDelayed() -> (notifyDate.timeInMillis + (1000 * 60 * 60 * 24 * delayDateDifference().toInt())) - Calendar.getInstance().timeInMillis
+            notifyDate.time > Calendar.getInstance().time -> (notifyDate.timeInMillis - Calendar.getInstance().timeInMillis)
+            else -> (notifyDate.timeInMillis + (1000 * 60 * 60 * 24)) - Calendar.getInstance().timeInMillis
+        }
+    }
+
+    fun getHabitAsWorkTag(): String{
+        return (Label + Created).hashCode().toString()
     }
 }
