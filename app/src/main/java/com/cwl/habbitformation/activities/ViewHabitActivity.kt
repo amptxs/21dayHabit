@@ -12,10 +12,13 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.isGone
-import androidx.work.OneTimeWorkRequest
-import androidx.work.OneTimeWorkRequestBuilder
-import androidx.work.WorkManager
+import androidx.room.Database
+import androidx.room.Room
+import androidx.room.RoomDatabase
+import androidx.work.*
 import com.cwl.habbitformation.R
+import com.cwl.habbitformation.controllers.HabitDao
+import com.cwl.habbitformation.controllers.HabitDaoEntity
 import com.cwl.habbitformation.controllers.OneTimeScheduleWorker
 import com.cwl.habbitformation.models.Codes
 import com.cwl.habbitformation.models.Habit
@@ -32,6 +35,19 @@ class ViewHabitActivity : AppCompatActivity() {
 
     private lateinit var habit: Habit
     private var resultCode = Codes().BACK
+
+    @Database(entities = [HabitDaoEntity::class], version = 2)
+    abstract class AppDatabase : RoomDatabase() {
+        abstract fun habitDAO(): HabitDao
+    }
+
+    private val dataBase by lazy {
+        Room.databaseBuilder(
+            applicationContext,
+            AppDatabase::class.java, "database-name"
+        ).allowMainThreadQueries().build()
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_view_habit)
@@ -115,6 +131,8 @@ class ViewHabitActivity : AppCompatActivity() {
             habit = updatedHabit
             resultCode = Codes().EDIT
             loadModel(habit)
+
+            updateDao(habit)
         }
     }
 
@@ -151,20 +169,24 @@ class ViewHabitActivity : AppCompatActivity() {
 
         habit.markAsDone()
 
+        updateDao(habit)
+
         loadModel(habit)
         doneToday()
 
         WorkManager.getInstance(baseContext).cancelAllWorkByTag(habit.getHabitAsWorkTag())
         if (habit.hadNotify())
-            scheduleOneTimeNotification(habit.getTimeToNotify(), habit.getHabitAsWorkTag())
+            scheduleOneTimeNotification(habit)
 
     }
 
-    fun scheduleOneTimeNotification(initialDelay: Long, WORK_TAG: String) {
+    fun scheduleOneTimeNotification(habit: Habit) {
+        val myData = Data.Builder().putString("Label",habit.Label).putString("Description",habit.Description).build()
         val work =
             OneTimeWorkRequestBuilder<OneTimeScheduleWorker>()
-                .setInitialDelay(initialDelay, TimeUnit.MILLISECONDS)
-                .addTag(WORK_TAG)
+                .setInitialDelay(habit.getTimeToNotify(), TimeUnit.MILLISECONDS)
+                .addTag(habit.getHabitAsWorkTag())
+                .setInputData(myData)
                 .build()
         WorkManager.getInstance(baseContext).enqueue(work)
     }
@@ -201,5 +223,11 @@ class ViewHabitActivity : AppCompatActivity() {
                 position = Position.Relative(1.0, 0.5)
             ),
         )
+    }
+
+    private fun updateDao(updatedHabit: Habit){
+        var timeLastUpdate = if (updatedHabit.LastUpdate == null) null else updatedHabit.LastUpdate!!.time
+        dataBase.habitDAO().update(updatedHabit.EntityId, updatedHabit.Label, updatedHabit.Description,
+            updatedHabit.Created.time, timeLastUpdate, updatedHabit.Duration, updatedHabit.NotifyAt, updatedHabit.Progress)
     }
 }

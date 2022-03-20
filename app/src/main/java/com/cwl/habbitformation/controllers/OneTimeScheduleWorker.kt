@@ -25,9 +25,9 @@ class OneTimeScheduleWorker(val context: Context, workerParams: WorkerParameters
     override fun doWork(): Result {
 
         val builder = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_baseline_add_24)
-            .setContentTitle("Scheduled notification")
-            .setContentText("Hello from one-time worker!")
+            .setSmallIcon(R.drawable.ic_baseline_date_24)
+            .setContentTitle(context.getString(R.string.habitNotification) + " " + inputData.getString("Label"))
+            .setContentText(inputData.getString("Description"))
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
 
         with(NotificationManagerCompat.from(context)) {
@@ -35,16 +35,5 @@ class OneTimeScheduleWorker(val context: Context, workerParams: WorkerParameters
         }
 
         return Result.success()
-    }
-
-
-    fun scheduleOneTimeNotification(initialDelay: Long, WORK_TAG: String) {
-        val work =
-            OneTimeWorkRequestBuilder<OneTimeScheduleWorker>()
-                .setInitialDelay(initialDelay, TimeUnit.MILLISECONDS)
-                .addTag(WORK_TAG)
-                .build()
-
-        WorkManager.getInstance(context).enqueue(work)
     }
 }

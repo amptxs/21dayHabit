@@ -99,8 +99,12 @@ class RecyclerViewHabitAdapter: RecyclerView.Adapter<RecyclerViewHabitAdapter.Vi
     fun moveItem(from: Int, to: Int){
         val itemToMove = this.items[from]
         val index: Int = from
+
         this.items.removeAt(index)
         this.items.add(to, itemToMove)
+
+        (thisContext as MainActivity).moveItems(this.items)
+
         notifyItemMoved(from, to)
     }
 }

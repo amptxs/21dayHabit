@@ -12,11 +12,13 @@ import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.core.content.ContextCompat
 import androidx.core.view.isGone
 import androidx.core.view.updateLayoutParams
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.room.Room
 import com.cwl.habbitformation.activities.AddHabitActivity
 import com.cwl.habbitformation.adapters.RecyclerViewHabitAdapter
 import com.cwl.habbitformation.adapters.RecyclerViewTouchHelper
@@ -26,7 +28,10 @@ import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.activity_main.*
 import java.text.SimpleDateFormat
 import java.util.*
-
+import androidx.room.*
+import com.cwl.habbitformation.controllers.HabitDao
+import com.cwl.habbitformation.controllers.HabitDaoEntity
+import com.google.android.material.snackbar.BaseTransientBottomBar
 
 class MainActivity : AppCompatActivity() {
 
@@ -35,6 +40,19 @@ class MainActivity : AppCompatActivity() {
     }
     private val recyclerTouchHelper by lazy {
         RecyclerViewTouchHelper(recyclerAdapter, this)
+    }
+
+    @Database(entities = [HabitDaoEntity::class], version = 2)
+    abstract class AppDatabase : RoomDatabase() {
+        abstract fun habitDAO(): HabitDao
+    }
+
+    private val dataBase by lazy {
+        Room.databaseBuilder(
+            applicationContext,
+            AppDatabase::class.java, "database-name"
+        ).allowMainThreadQueries().build()
+        //fallbackToDestructiveMigration()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -54,56 +72,61 @@ class MainActivity : AppCompatActivity() {
         habitContainer.setItemViewCacheSize(100)
         ItemTouchHelper(recyclerTouchHelper.ItemTouchCallback).attachToRecyclerView(habitContainer)
 
-        val habit1Date = Calendar.getInstance()
-        habit1Date.add(Calendar.DATE, -1);
-        val habit1 = Habit("Заняться спортом", "Соблюдать составленную программу упраженений", Calendar.getInstance().time,
-            habit1Date.time, 21, 1)
-        habit1.Progress = 15
 
-        val sdf = SimpleDateFormat("dd/MM/yyyy")
-        val d = sdf.parse("28/02/2022")
-        val habit2 = Habit("Здорово питаться", "Соблюдать график приемов пищи", d, d, 21, null)
-        habit2.Progress = 7
 
-        val habit3 = Habit("Начать бегать", "тест", Calendar.getInstance().time,
-            Calendar.getInstance().time, 21, null)
-        habit3.Progress = 21
+        val collection = dataBase.habitDAO().getAll()
 
-        val habit4 = Habit("ЗАГОЛОВОК Щ В ДВЕ СТРОКИ", "тест", Calendar.getInstance().time,
-            Calendar.getInstance().time, 21, null)
-        habit4.Progress = 21
-
-        //addItemTop(habit4)
-        addItemTop(habit3)
-        addItemTop(habit2)
-        addItemTop(habit1)
-
+        for (habit in collection)
+            addItemTop(habit.castToNormal())
         AddButton.setOnClickListener(){
             openAddHabitActivity()
         }
-
     }
 
-    //move to data controller TODO
+    fun moveItems(items: MutableList<Habit>){
+//        var rawIndexes = mutableListOf<Int>()
+//        var habitIndexes = mutableListOf<Int>()
+//        var habits = dataBase.habitDAO().getAll()
+//
+//        for (item in items) {
+//            rawIndexes.add(item.EntityId)
+//            habitIndexes.add(item.EntityId)
+//            Log.d("Raw and Name", item.EntityId.toString() + " " + item.Label)
+//        }
+//        habitIndexes.sort()
+//
+//        var habitsTemp = mutableListOf<HabitDaoEntity>()
+//
+//        for (i in habitIndexes.indices) {
+//            var habit = dataBase.habitDAO().getById(rawIndexes[i])
+//            habit.id = habitIndexes[i]
+//            habitsTemp.add(habit)
+//
+//            Log.d("habitindex - > rawIndex", habitIndexes[i].toString() + "->" + rawIndexes[i].toString())
+//        }
+//
+//        for (item in habitsTemp.indices) {
+//            Log.d("finalIndex and finalName", habitsTemp[item].id.toString() + " " + habitsTemp[item].label)
+//            dataBase.habitDAO().update(habitsTemp[item])
+//        }
+    }
+
     fun addItemTop(model: Habit){
-        //dbList.add(model) TODO
         recyclerAdapter.addItemTop(model)
         refreshIntroduction()
     }
 
-    //move to data controller TODO
     fun removeAndNotify(viewHolder: RecyclerViewHabitAdapter.ViewHolder){
-        //dbList.removeAt(model) TODO
 
         var removedItemPosition = viewHolder.adapterPosition
         var item = recyclerAdapter.getItem(removedItemPosition)
+
         recyclerAdapter.removeItemAt(removedItemPosition)
 
         val undoString = applicationContext.getString(R.string.undo)
         val deletedString = applicationContext.getString(R.string.deleted)
 
         Snackbar.make(viewHolder.itemView, "$deletedString \n\"${item.Label}\"", Snackbar.LENGTH_LONG).setAction(undoString){
-            recyclerAdapter.addItemAt(item,removedItemPosition)
             recyclerAdapter.notifyDataSetChanged()
             refreshIntroduction()
         }.apply {
@@ -114,7 +137,16 @@ class MainActivity : AppCompatActivity() {
             tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16f)
             btn.setTextColor(resources.getColor(R.color.white, null))
             tv.setTextColor(resources.getColor(R.color.white, null))
-        }.show()
+        }.addCallback(object : BaseTransientBottomBar.BaseCallback<Snackbar>() {
+            override fun onDismissed(
+                transientBottomBar: Snackbar?,
+                event: Int
+            ) {
+                super.onDismissed(transientBottomBar, event)
+                dataBase.habitDAO().removeAt(item.EntityId)
+            }
+        }).show()
+
 
         refreshIntroduction()
     }
@@ -137,13 +169,18 @@ class MainActivity : AppCompatActivity() {
         if (it.resultCode == Codes().ADD){
             val data: Intent? = it.data
             val newHabit = data?.getSerializableExtra("Object") as Habit
+            newHabit.EntityId = dataBase.habitDAO().add(newHabit.castToEntity()).toInt()
             addItemTop(newHabit)
+            Log.d("test", newHabit.EntityId.toString())
+
         }
         if (it.resultCode == Codes().EDIT){
             val data: Intent? = it.data
             val updatedHabit = data?.getSerializableExtra("ViewedItem") as Habit
             val index = data?.getSerializableExtra("Index") as Int
             recyclerAdapter.updateItemAt(updatedHabit, index)
+
+            updateDao(updatedHabit)
         }
     }
 
@@ -168,4 +205,9 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun updateDao(updatedHabit: Habit){
+        var timeLastUpdate = if (updatedHabit.LastUpdate == null) null else updatedHabit.LastUpdate!!.time
+        dataBase.habitDAO().update(updatedHabit.EntityId, updatedHabit.Label, updatedHabit.Description,
+            updatedHabit.Created.time, timeLastUpdate, updatedHabit.Duration, updatedHabit.NotifyAt, updatedHabit.Progress)
+    }
 }

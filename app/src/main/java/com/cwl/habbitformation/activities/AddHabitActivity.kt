@@ -18,8 +18,10 @@ import androidx.core.view.isGone
 import androidx.core.widget.doOnTextChanged
 import androidx.recyclerview.widget.LinearSnapHelper
 import androidx.recyclerview.widget.SnapHelper
+import androidx.work.Data
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
+import androidx.work.workDataOf
 import com.cwl.habbitformation.R
 import com.cwl.habbitformation.adapters.RecyclerViewPickerAdapter
 import com.cwl.habbitformation.controllers.OneTimeScheduleWorker
@@ -216,11 +218,11 @@ class AddHabitActivity : AppCompatActivity() {
         when (requestCode) {
             Codes().ADD -> {
                 var habit = Habit(LabelInput.text.toString(),DescriptionInput.text.toString().replace("\n", " "),
-                    date.time, null, days, notifyTimeLong)
+                    date.timeInMillis, null, days, notifyTimeLong)
                 var intentBack = Intent().putExtra("Object", habit)
 
                 if (habit.hadNotify())
-                    scheduleOneTimeNotification(habit.getTimeToNotifyOnCreate(), habit.getHabitAsWorkTag())
+                    scheduleOneTimeNotification(habit.getTimeToNotifyOnCreate(),habit)
 
                 setResult(Codes().ADD, intentBack)
                 finish()
@@ -233,7 +235,7 @@ class AddHabitActivity : AppCompatActivity() {
 
                 WorkManager.getInstance(baseContext).cancelAllWorkByTag(editedHabit.getHabitAsWorkTag())
                 if (editedHabit.hadNotify())
-                    scheduleOneTimeNotification(editedHabit.getTimeToNotify(),  editedHabit.getHabitAsWorkTag())
+                    scheduleOneTimeNotification(editedHabit.getTimeToNotify(),editedHabit)
 
                 var intentBack = Intent().putExtra("EditedItem", editedHabit)
                 setResult(Codes().EDIT, intentBack)
@@ -308,11 +310,13 @@ class AddHabitActivity : AppCompatActivity() {
         }
     }
 
-    fun scheduleOneTimeNotification(initialDelay: Long, WORK_TAG: kotlin.String) {
+    fun scheduleOneTimeNotification(delay: Long,habit: Habit) {
+        val myData = Data.Builder().putString("Label",habit.Label).putString("Description",habit.Description).build()
         val work =
             OneTimeWorkRequestBuilder<OneTimeScheduleWorker>()
-                .setInitialDelay(initialDelay, TimeUnit.MILLISECONDS)
-                .addTag(WORK_TAG)
+                .setInitialDelay(delay, TimeUnit.MILLISECONDS)
+                .addTag(habit.getHabitAsWorkTag())
+                .setInputData(myData)
                 .build()
         WorkManager.getInstance(baseContext).enqueue(work)
     }

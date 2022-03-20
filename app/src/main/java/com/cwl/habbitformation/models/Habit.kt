@@ -8,6 +8,7 @@ import android.util.Log
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
 import com.cwl.habbitformation.R
+import com.cwl.habbitformation.controllers.HabitDaoEntity
 import java.io.Console
 import java.io.Serializable
 import java.security.AccessController.getContext
@@ -15,14 +16,20 @@ import java.sql.Time
 import java.time.Duration
 import java.util.*
 import java.util.concurrent.TimeUnit
+import kotlin.math.ceil
 import kotlin.time.Duration.Companion.hours
 
-class Habit(label: String, description: String, created: Date, lastUpdate: Date?,
+class Habit(label: String, description: String, created: Long, lastUpdate: Long?,
             duration: Int, notifyAt: Long?) : Serializable {
+    var EntityId = 0
     var Label = label
     var Description = description
-    var Created = created
-    var LastUpdate = lastUpdate
+    var Created = Date(created)
+    var LastUpdate =
+        if (lastUpdate == null)
+            null
+        else
+            Date(lastUpdate)
     var Duration = duration
     var NotifyAt = notifyAt
     var Progress: Int = 0
@@ -120,7 +127,7 @@ class Habit(label: String, description: String, created: Date, lastUpdate: Date?
     }
 
     fun millisToNormal(context: Context): String {
-        return if (NotifyAt == null)
+        return if (!hadNotify())
             context.getString(R.string.notSet)
         else
             String.format("%02d:%02d",
@@ -142,7 +149,6 @@ class Habit(label: String, description: String, created: Date, lastUpdate: Date?
         notifyDate[Calendar.MINUTE] = getNotifyMinutes().toInt()
         notifyDate[Calendar.SECOND] = 0
 
-        Log.d("delayMS", ((notifyDate.timeInMillis + (1000 * 60 * 60 * 24)) - Calendar.getInstance().timeInMillis).toString())
         return (notifyDate.timeInMillis + (1000 * 60 * 60 * 24)) - Calendar.getInstance().timeInMillis
     }
 
@@ -161,5 +167,22 @@ class Habit(label: String, description: String, created: Date, lastUpdate: Date?
 
     fun getHabitAsWorkTag(): String{
         return (Label + Created).hashCode().toString()
+    }
+
+    fun castToEntity(): HabitDaoEntity{
+        var entity = HabitDaoEntity()
+        entity.label = Label
+        entity.description = Description
+        entity.created = Created.time
+        entity.lastUpdate =
+        if (LastUpdate == null)
+            null
+        else
+            LastUpdate!!.time
+        entity.duration = Duration
+        entity.notifyAt = NotifyAt
+        entity.progress = Progress
+
+        return entity
     }
 }

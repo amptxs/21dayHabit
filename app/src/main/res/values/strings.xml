@@ -37,8 +37,13 @@
     <string name="introductionSecond">Начните прямо сейчас нажав кнопку “добавить привычку”</string>
     <string name="todayMarked">Сегодня привычка соблюдена</string>
 
+    <!-- Уведомления -->
+    <string name="habitNotification">Напоминание о привычке</string>
+
     <!-- Остальное -->
     <string name="outOf">из</string>
     <string name="tomorrow">Завтра</string>
     <string name="today">Сегодня</string>
+
+
 </resources>
