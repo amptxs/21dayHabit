@@ -36,7 +36,7 @@ class ViewHabitActivity : AppCompatActivity() {
     private lateinit var habit: Habit
     private var resultCode = Codes().BACK
 
-    @Database(entities = [HabitDaoEntity::class], version = 2)
+    @Database(entities = [HabitDaoEntity::class], version = 3)
     abstract class AppDatabase : RoomDatabase() {
         abstract fun habitDAO(): HabitDao
     }

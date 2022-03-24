@@ -51,6 +51,9 @@ class RecyclerViewHabitAdapter: RecyclerView.Adapter<RecyclerViewHabitAdapter.Vi
                         .putExtra("Index", adapterPosition)
                     resultViewHabit.launch(intent)
                 }
+
+                if (model.Position == null)
+                    model.Position = adapterPosition
             }
         }
     }

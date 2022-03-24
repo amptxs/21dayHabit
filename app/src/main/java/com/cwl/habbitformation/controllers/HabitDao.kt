@@ -29,6 +29,9 @@ interface HabitDao {
     @Update
     fun update(habit: HabitDaoEntity)
 
+    @Query ("UPDATE HabitDaoEntity SET position=:position WHERE id = :id")
+    fun updatePosition(id: Int, position: Int)
+
     @Query("SELECT * FROM HabitDaoEntity")
     fun getAll(): List<HabitDaoEntity>
 
@@ -50,17 +53,19 @@ data class HabitDaoEntity(
     var lastUpdate: Long?,
     var duration: Int,
     var notifyAt: Long?,
-    var progress: Int
+    var progress: Int,
+    var position: Int?
 )
 {
     constructor() : this(0,"label", "description", Calendar.getInstance().timeInMillis,
-        null, 21, null, 0)
+        null, 21, null, 0,null)
 
     @TypeConverter
     fun castToNormal(): Habit {
         var habit = Habit(label, description, created, lastUpdate ,duration, notifyAt)
         habit.Progress = progress
         habit.EntityId = id
+        habit.Position = position
         return habit
     }
 

@@ -33,7 +33,7 @@ class Habit(label: String, description: String, created: Long, lastUpdate: Long?
     var Duration = duration
     var NotifyAt = notifyAt
     var Progress: Int = 0
-
+    var Position: Int? = 0
 
     fun isActive(): Boolean {
         return dateDifference() <= 2 && Progress != Duration
