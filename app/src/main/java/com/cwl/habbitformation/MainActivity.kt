@@ -18,11 +18,15 @@ import androidx.core.view.updateLayoutParams
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.room.*
+import androidx.work.Data
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
 import com.cwl.habbitformation.activities.AddHabitActivity
 import com.cwl.habbitformation.adapters.RecyclerViewHabitAdapter
 import com.cwl.habbitformation.adapters.RecyclerViewTouchHelper
 import com.cwl.habbitformation.controllers.HabitDao
 import com.cwl.habbitformation.controllers.HabitDaoEntity
+import com.cwl.habbitformation.controllers.OneTimeScheduleWorker
 import com.cwl.habbitformation.models.Codes
 import com.cwl.habbitformation.models.Habit
 import com.google.android.material.snackbar.BaseTransientBottomBar
@@ -30,6 +34,7 @@ import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.activity_main.*
 import java.text.SimpleDateFormat
 import java.util.*
+import java.util.concurrent.TimeUnit
 
 class MainActivity : AppCompatActivity() {
 
@@ -98,7 +103,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-
     fun moveItems(items: MutableList<Habit>){
         for (i in items.indices)
             dataBase.habitDAO().updatePosition(items[i].EntityId, i)
@@ -136,12 +140,13 @@ class MainActivity : AppCompatActivity() {
                 event: Int
             ) {
                 super.onDismissed(transientBottomBar, event)
-                if (event == Snackbar.Callback.DISMISS_EVENT_TIMEOUT) {
+                if (event != Snackbar.Callback.DISMISS_EVENT_ACTION) {
                     dataBase.habitDAO().removeAt(item.EntityId)
                 }
             }
         }).show()
     }
+
 
     private fun refreshIntroduction(){
 
@@ -166,14 +171,17 @@ class MainActivity : AppCompatActivity() {
             newHabit.EntityId = dataBase.habitDAO().add(newHabit.castToEntity()).toInt()
             newHabit.Position = 0
             addItemTop(newHabit)
-            Log.d("test", newHabit.EntityId.toString())
+
+            if (newHabit.hadNotify())
+                scheduleOneTimeNotification(newHabit.getTimeToNotifyOnCreate(),newHabit)
 
         }
         if (it.resultCode == Codes().EDIT){
             val data: Intent? = it.data
             val updatedHabit = data?.getSerializableExtra("ViewedItem") as Habit
-            val index = data?.getSerializableExtra("Index") as Int
-            recyclerAdapter.updateItemAt(updatedHabit, index)
+            val index = data?.getSerializableExtra("Index") as Int?
+            if (index != null)
+                recyclerAdapter.updateItemAt(updatedHabit, index)
 
             updateDao(updatedHabit)
         }
@@ -204,5 +212,17 @@ class MainActivity : AppCompatActivity() {
         var timeLastUpdate = if (updatedHabit.LastUpdate == null) null else updatedHabit.LastUpdate!!.time
         dataBase.habitDAO().update(updatedHabit.EntityId, updatedHabit.Label, updatedHabit.Description,
             updatedHabit.Created.time, timeLastUpdate, updatedHabit.Duration, updatedHabit.NotifyAt, updatedHabit.Progress)
+    }
+
+    fun scheduleOneTimeNotification(delay: Long,habit: Habit) {
+        val myData = Data.Builder().putString("Label",habit.Label).putString("Description",habit.Description)
+            .putInt("Id",habit.EntityId).build()
+        val work =
+            OneTimeWorkRequestBuilder<OneTimeScheduleWorker>()
+                .setInitialDelay(delay, TimeUnit.MILLISECONDS)
+                .addTag(habit.getHabitAsWorkTag())
+                .setInputData(myData)
+                .build()
+        WorkManager.getInstance(baseContext).enqueue(work)
     }
 }

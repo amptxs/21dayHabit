@@ -166,7 +166,7 @@ class Habit(label: String, description: String, created: Long, lastUpdate: Long?
     }
 
     fun getHabitAsWorkTag(): String{
-        return (Label + Created).hashCode().toString()
+        return (EntityId).hashCode().toString()
     }
 
     fun castToEntity(): HabitDaoEntity{

@@ -7,7 +7,6 @@ import android.app.DatePickerDialog.OnDateSetListener
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
-import android.view.KeyEvent
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.AccelerateDecelerateInterpolator
@@ -21,14 +20,12 @@ import androidx.recyclerview.widget.SnapHelper
 import androidx.work.Data
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
-import androidx.work.workDataOf
 import com.cwl.habbitformation.R
 import com.cwl.habbitformation.adapters.RecyclerViewPickerAdapter
 import com.cwl.habbitformation.controllers.OneTimeScheduleWorker
 import com.cwl.habbitformation.models.Codes
 import com.cwl.habbitformation.models.Habit
 import kotlinx.android.synthetic.main.activity_add_habit.*
-import kotlinx.android.synthetic.main.activity_view_habit.*
 import travel.ithaka.android.horizontalpickerlib.PickerLayoutManager
 import java.lang.String
 import java.util.*
@@ -42,7 +39,7 @@ class AddHabitActivity : AppCompatActivity() {
     private var hoursNotify = 0
     private var minutesNotify = 0
 
-    private var days = 0;
+    private var days = 0
 
     private var requestCode = Codes().BACK
     private lateinit var editedHabit: Habit
@@ -53,7 +50,7 @@ class AddHabitActivity : AppCompatActivity() {
 
         requestCode = intent.getSerializableExtra("RequestCode") as Int
 
-        initializePicker(23,59)
+        initializePicker()
 
         if (requestCode == Codes().ADD)
             requestAdd()
@@ -123,17 +120,17 @@ class AddHabitActivity : AppCompatActivity() {
     private fun onSwitchClick(view: View){
         if (view.id == button21day.id){
             days = 21
-            button21day.backgroundTintList = applicationContext.getResources().getColorStateList(R.color.element, null)
-            button100days.backgroundTintList = applicationContext.getResources().getColorStateList(android.R.color.transparent, null)
+            button21day.backgroundTintList = applicationContext.resources.getColorStateList(R.color.element, null)
+            button100days.backgroundTintList = applicationContext.resources.getColorStateList(android.R.color.transparent, null)
         }
         else{
             days = 100
-            button21day.backgroundTintList = applicationContext.getResources().getColorStateList(android.R.color.transparent, null)
-            button100days.backgroundTintList = applicationContext.getResources().getColorStateList(R.color.element, null)
+            button21day.backgroundTintList = applicationContext.resources.getColorStateList(android.R.color.transparent, null)
+            button100days.backgroundTintList = applicationContext.resources.getColorStateList(R.color.element, null)
         }
     }
 
-    private fun initializePicker(hours:Int, minutes:Int){
+    private fun initializePicker(){
         val pickerLayoutManagerHours = PickerLayoutManager(this, PickerLayoutManager.HORIZONTAL, false)
         pickerLayoutManagerHours.isChangeAlpha = true
         pickerLayoutManagerHours.scaleDownBy = 0.70f
@@ -149,20 +146,20 @@ class AddHabitActivity : AppCompatActivity() {
         snapHelperMinutes.attachToRecyclerView(verticalSliderMinutes)
 
 
-        var adapterHours = RecyclerViewPickerAdapter()
-        var adapterMinutes = RecyclerViewPickerAdapter()
+        val adapterHours = RecyclerViewPickerAdapter()
+        val adapterMinutes = RecyclerViewPickerAdapter()
 
         verticalSliderHours.apply {
             adapter = adapterHours
             layoutManager = pickerLayoutManagerHours
         }
 
-        var density = applicationContext.getResources().getDisplayMetrics().density
-        var widthPixels = applicationContext.getResources().getDisplayMetrics().widthPixels
+        val density = applicationContext.getResources().getDisplayMetrics().density
+        val widthPixels = applicationContext.getResources().getDisplayMetrics().widthPixels
 
         //25 - picker item text size *2 is for two symbols
         //15 - picker left\right margin
-        var padding = (widthPixels - addHabitLayout.paddingLeft- 25*density*2 - 15*density*2) / 2
+        val padding = (widthPixels - addHabitLayout.paddingLeft- 25*density*2 - 15*density*2) / 2
         verticalSliderHours.setPadding(padding.toInt(),0,padding.toInt(),0)
         verticalSliderMinutes.setPadding(padding.toInt(),0,padding.toInt(),0)
 
@@ -171,10 +168,10 @@ class AddHabitActivity : AppCompatActivity() {
             layoutManager = pickerLayoutManagerMinutes
         }
 
-        for (n in 0..hours)
+        for (n in 0..23)
             adapterHours.addItem(formattedString(n))
 
-        for (n in 0..minutes)
+        for (n in 0..59)
             adapterMinutes.addItem(formattedString(n))
 
         heightAnimation(SliderLayout, SliderLayout.height, 1, 1)
@@ -209,7 +206,7 @@ class AddHabitActivity : AppCompatActivity() {
     }
 
     private fun save(){
-        var notifyTimeLong: Long? = timeToMilis(hoursNotify, minutesNotify)
+        var notifyTimeLong: Long? = timeToMillis(hoursNotify, minutesNotify)
         if (!checkBoxRemind.isChecked)
             notifyTimeLong = null
 
@@ -217,12 +214,10 @@ class AddHabitActivity : AppCompatActivity() {
 
         when (requestCode) {
             Codes().ADD -> {
-                var habit = Habit(LabelInput.text.toString(),DescriptionInput.text.toString().replace("\n", " "),
+                val habit = Habit(LabelInput.text.toString(),DescriptionInput.text.toString().replace("\n", " "),
                     date.timeInMillis, null, days, notifyTimeLong)
-                var intentBack = Intent().putExtra("Object", habit)
+                val intentBack = Intent().putExtra("Object", habit)
 
-                if (habit.hadNotify())
-                    scheduleOneTimeNotification(habit.getTimeToNotifyOnCreate(),habit)
 
                 setResult(Codes().ADD, intentBack)
                 finish()
@@ -237,7 +232,7 @@ class AddHabitActivity : AppCompatActivity() {
                 if (editedHabit.hadNotify())
                     scheduleOneTimeNotification(editedHabit.getTimeToNotify(),editedHabit)
 
-                var intentBack = Intent().putExtra("EditedItem", editedHabit)
+                val intentBack = Intent().putExtra("EditedItem", editedHabit)
                 setResult(Codes().EDIT, intentBack)
                 finish()
             }
@@ -249,7 +244,7 @@ class AddHabitActivity : AppCompatActivity() {
     private fun heightAnimation(view: View, currentHeight: Int, newHeight:Int, duration: Long){
         val animator = ValueAnimator.ofInt(currentHeight, newHeight).setDuration(duration)
         animator.addUpdateListener {
-            var value: Int = it.animatedValue as Int
+            val value: Int = it.animatedValue as Int
             view.layoutParams.height = value
             view.requestLayout()
         }
@@ -259,7 +254,7 @@ class AddHabitActivity : AppCompatActivity() {
         animationSet.start()
     }
 
-    var d =
+    private var d =
         OnDateSetListener { view, year, monthOfYear, dayOfMonth ->
             date[Calendar.YEAR] = year
             date[Calendar.MONTH] = monthOfYear
@@ -268,18 +263,18 @@ class AddHabitActivity : AppCompatActivity() {
             date[Calendar.MINUTE] = 0
             date[Calendar.SECOND] = 0
 
-            buttonDateSelect.text = "${formattedString(date[Calendar.DAY_OF_MONTH])}" +
+            buttonDateSelect.text = formattedString(date[Calendar.DAY_OF_MONTH]) +
                     ".${formattedString(date[Calendar.MONTH])}"
         }
 
     private fun setDate() {
-        var pickerDialog = DatePickerDialog(
+        val pickerDialog = DatePickerDialog(
             this,R.style.DialogTheme,d,
             date.get(Calendar.YEAR),
             date.get(Calendar.MONTH),
             date.get(Calendar.DAY_OF_MONTH)
         )
-        var picker = pickerDialog.datePicker
+        val picker = pickerDialog.datePicker
         picker.minDate=Calendar.getInstance().timeInMillis
         pickerDialog.show()
     }
@@ -288,7 +283,7 @@ class AddHabitActivity : AppCompatActivity() {
         return String.format("%02d", int)
     }
 
-    private fun timeToMilis(h: Int, m:Int): Long{
+    private fun timeToMillis(h: Int, m:Int): Long{
         var mill = (h * (1000*60*60) + m * (1000*60)).toLong()
 
         Log.d("test", String.format("%d hours, %d minutes",
@@ -298,20 +293,21 @@ class AddHabitActivity : AppCompatActivity() {
         return mill
     }
 
-    fun setMargins(v: View, l: Int, t: Int, r: Int, b: Int) {
+    private fun setMargins(v: View, l: Int, t: Int, r: Int, b: Int) {
         if (v.layoutParams is ViewGroup.MarginLayoutParams) {
             val p = v.layoutParams as ViewGroup.MarginLayoutParams
-            val left = applicationContext.getResources().getDisplayMetrics().density.toInt() * l
-            val right = applicationContext.getResources().getDisplayMetrics().density.toInt() * r
-            val top = applicationContext.getResources().getDisplayMetrics().density.toInt() * t
-            val bottom = applicationContext.getResources().getDisplayMetrics().density.toInt() * b
+            val left = applicationContext.resources.displayMetrics.density.toInt() * l
+            val right = applicationContext.resources.displayMetrics.density.toInt() * r
+            val top = applicationContext.resources.displayMetrics.density.toInt() * t
+            val bottom = applicationContext.resources.displayMetrics.density.toInt() * b
             p.setMargins(left, top, right, bottom)
             v.requestLayout()
         }
     }
 
-    fun scheduleOneTimeNotification(delay: Long,habit: Habit) {
-        val myData = Data.Builder().putString("Label",habit.Label).putString("Description",habit.Description).build()
+    private fun scheduleOneTimeNotification(delay: Long, habit: Habit) {
+        val myData = Data.Builder().putString("Label",habit.Label).putString("Description",habit.Description)
+            .putInt("Id",habit.EntityId).build()
         val work =
             OneTimeWorkRequestBuilder<OneTimeScheduleWorker>()
                 .setInitialDelay(delay, TimeUnit.MILLISECONDS)

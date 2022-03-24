@@ -47,8 +47,8 @@ class RecyclerViewHabitAdapter: RecyclerView.Adapter<RecyclerViewHabitAdapter.Vi
                 var resultViewHabit = (context as MainActivity).resultActivity
                 itemView.setOnClickListener {
                     val intent = Intent(context, ViewHabitActivity::class.java)
-                        .putExtra("Object", items[adapterPosition])
                         .putExtra("Index", adapterPosition)
+                        .putExtra("EntityId", model.EntityId)
                     resultViewHabit.launch(intent)
                 }
 

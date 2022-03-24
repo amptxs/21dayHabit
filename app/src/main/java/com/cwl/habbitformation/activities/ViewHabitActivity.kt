@@ -6,6 +6,7 @@ import android.app.NotificationManager
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.util.TypedValue
 import android.view.MotionEvent
 import androidx.activity.result.contract.ActivityResultContracts
@@ -29,6 +30,7 @@ import nl.dionsegijn.konfetti.core.*
 import nl.dionsegijn.konfetti.core.emitter.Emitter
 import java.util.*
 import java.util.concurrent.TimeUnit
+import kotlin.system.exitProcess
 
 
 class ViewHabitActivity : AppCompatActivity() {
@@ -52,14 +54,19 @@ class ViewHabitActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_view_habit)
 
-        habit= intent.getSerializableExtra("Object") as Habit
+        var habitId= intent.getSerializableExtra("EntityId") as Int
+        Log.d("habitId", habitId.toString())
+        habit = dataBase.habitDAO().getById(habitId).castToNormal()
         loadModel(habit)
         checkHabitStatus()
         initializeEditButton()
     }
 
     override fun onBackPressed() {
-        var index = intent.getSerializableExtra("Index") as Int
+        if (intent.getSerializableExtra("fromNotify") == true)
+            exitProcess(0)
+
+        var index = intent.getSerializableExtra("Index") as Int?
         var intentBack = Intent().putExtra("ViewedItem", habit).putExtra("Index", index)
         setResult(resultCode, intentBack)
         finish()
@@ -181,7 +188,8 @@ class ViewHabitActivity : AppCompatActivity() {
     }
 
     fun scheduleOneTimeNotification(habit: Habit) {
-        val myData = Data.Builder().putString("Label",habit.Label).putString("Description",habit.Description).build()
+        val myData = Data.Builder().putString("Label",habit.Label).putString("Description",habit.Description)
+            .putInt("Id",habit.EntityId).build()
         val work =
             OneTimeWorkRequestBuilder<OneTimeScheduleWorker>()
                 .setInitialDelay(habit.getTimeToNotify(), TimeUnit.MILLISECONDS)
